@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Namaste Happiness · Portal</title>
+  <style>
+    :root{
+      --ink:#1B2B38;
+      --pink:#F94B8B;
+      --blue:#20B9E4;
+      --purple:#8A6CF6;
+      --mist:#FAFAFF;
+      --card:#FFFFFF;
+      --ring: rgba(138,108,246,0.18);
+      --shadow:0 8px 28px rgba(27,43,56,0.10);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(900px 600px at 18% 18%, rgba(249,75,139,0.06), transparent 60%),
+        radial-gradient(900px 600px at 82% 70%, rgba(32,185,228,0.06), transparent 60%),
+        linear-gradient(180deg, var(--mist), #FFFFFF);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+      overflow-x:hidden;
+    }
+    .wrap{ max-width:880px; margin:0 auto; padding:24px 20px 64px; }
+
+    header{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:10px; }
+    .brand{ font-size:16px; letter-spacing:0.06em; text-transform:uppercase; opacity:.75 }
+    .pill{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:#fff; box-shadow:var(--shadow); font-size:14px; }
+    .dot{ width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg,var(--pink),var(--purple)); }
+
+    .hero{ text-align:center; padding:44px 0 12px; }
+    .title{ font-size:24px; font-weight:700; letter-spacing:.01em; }
+    .sub{ margin-top:6px; font-size:14px; opacity:.9; }
+    .gradient-text-strong{
+      background: linear-gradient(135deg,var(--pink),var(--purple),var(--blue));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      font-size: 16px; font-weight:600;
+    }
+
+    .card{ background:var(--card); border:1px solid rgba(27,43,56,0.10); border-radius:18px; padding:18px; box-shadow:var(--shadow); margin:18px 0; }
+    .prompt{ font-size:18px; line-height:1.35; margin:6px 2px 10px }
+    textarea{
+      width:100%; min-height:168px; resize:vertical;
+      border-radius:14px; padding:14px; font-size:15px; line-height:1.5;
+      background:#fff; border:1.5px solid rgba(27,43,56,0.15);
+      outline:none; transition: box-shadow .2s ease, border-color .2s ease;
+    }
+    textarea:focus{ box-shadow:0 0 0 4px var(--ring); border-color:transparent; }
+    textarea::placeholder{ color:#9aa6b2 }
+
+    .row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+    button{ border:0; cursor:pointer; border-radius:14px; padding:12px 16px; font-size:14px; font-weight:600;
+      background:linear-gradient(135deg,var(--pink),var(--purple)); color:white; box-shadow:var(--shadow);
+      transition: transform .12s ease, filter .12s ease }
+    button:hover{ transform:translateY(-1px); filter:brightness(1.05) }
+    button.ghost{ background:#fff; color:var(--ink); border:1px solid rgba(27,43,56,0.12); box-shadow:none }
+
+    .mirror{
+      display:none; margin-top:12px; padding:14px; border-radius:14px;
+      border:1px solid rgba(27,43,56,0.10); background:#fff;
+    }
+    .mirror .label{ font-size:12px; opacity:.7; margin-bottom:6px }
+    .mirror .text{
+      font-size:18px; line-height:1.35;
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--blue));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
+
+    footer{ text-align:center; padding:20px 0 40px; opacity:.9 }
+    .blessing{ font-size:15px }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">Namaste Happiness · Portal</div>
+      <div class="pill"><span class="dot"></span><span>Everyday · with a sprinkle of magic</span></div>
+    </header>
+
+    <section class="hero">
+      <div class="title">Welcome</div>
+      <div class="sub gradient-text-strong">A quiet entry into the Sha-Rin-Tu field</div>
+    </section>
+
+    <section class="card">
+      <div class="prompt" id="prompt">What can you act on that is easy now?</div>
+      <textarea id="journal" placeholder="Your thoughts live here… Press Enter to Reflect."></textarea>
+
+      <div class="row">
+        <button id="reflectBtn">Reflect</button>
+        <button class="ghost" id="nextPrompt">Another Prompt</button>
+        <button class="ghost" id="clearBtn">Clear & Begin Again</button>
+        <button class="ghost" id="toggleSound">Sound: On</button>
+      </div>
+
+      <div class="mirror" id="mirror">
+        <div class="label">Mirror message</div>
+        <div class="text" id="mirrorText">Welcome beautiful. Take a breath.</div>
+      </div>
+
+      <div class="sub" style="margin-top:8px;">Your notes stay on your device. Nothing is uploaded.</div>
+    </section>
+
+    <footer>
+      <div class="blessing">Come back anytime — I will remember you.</div>
+      <div class="sub">Go deeper → (coming soon)</div>
+    </footer>
+  </div>
+
+  <script>
+    // Prompts and their single corresponding whispers
+    const prompts = [
+      "What can you act on that is easy now?",
+      "What is softly true for you right now?",
+      "If nothing needed fixing, what would you love to do now?"
+    ];
+    const whispers = [
+      "Welcome beautiful. Take a breath.",
+      "You are supported. The light breeze is proof.",
+      "Relax my darling. Set your shoulders down now."
+    ];
+
+    let pIndex = 0;
+    const promptEl = document.getElementById('prompt');
+    const journalEl = document.getElementById('journal');
+    const mirrorEl = document.getElementById('mirror');
+    const mirrorText = document.getElementById('mirrorText');
+    const nextPromptBtn = document.getElementById('nextPrompt');
+    const reflectBtn = document.getElementById('reflectBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function storageKey(){ return 'nh_portal_journal_' + pIndex; }
+    function loadPrompt(){
+      promptEl.textContent = prompts[pIndex];
+      journalEl.value = localStorage.getItem(storageKey()) || "";
+      mirrorEl.style.display = "none";
+    }
+    function savePrompt(){ localStorage.setItem(storageKey(), journalEl.value); }
+
+    // Initial load
+    loadPrompt();
+
+    // Reflect: show the mapped whisper (solid arrival, no delay)
+    function reflectNow(){
+      savePrompt();
+      mirrorText.textContent = whispers[pIndex];
+      mirrorEl.style.display = "block";
+    }
+    reflectBtn.addEventListener('click', reflectNow);
+    journalEl.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault(); reflectNow();
+      }
+    });
+
+    clearBtn.addEventListener('click', ()=>{ journalEl.value=""; savePrompt(); mirrorEl.style.display="none"; });
+
+    nextPromptBtn.addEventListener('click', ()=>{
+      savePrompt();
+      pIndex = (pIndex + 1) % prompts.length;
+      loadPrompt();
+    });
+
+    // Audio — gentle flute-like loop using WebAudio (default On)
+    let audioOn = false;
+    const audioBtn = document.getElementById('toggleSound');
+    let ac, master, delay, fb, mix, seqTimer;
+
+    function startAudio(){
+      if(audioOn) return;
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0.12; master.connect(ac.destination);
+
+      // subtle echo for flute
+      delay = ac.createDelay(1.0); delay.delayTime.value = 0.18;
+      fb = ac.createGain(); fb.gain.value = 0.22;
+      delay.connect(fb); fb.connect(delay);
+      mix = ac.createGain(); mix.gain.value = 0.22;
+      delay.connect(mix); mix.connect(master);
+
+      function fluteNote(freq, dur){
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        const vibr = ac.createOscillator();
+        const vibrGain = ac.createGain();
+        osc.type = "sine"; osc.frequency.value = freq;
+        vibr.frequency.value = 5.0; vibrGain.gain.value = 3.0;
+        vibr.connect(vibrGain); vibrGain.connect(osc.frequency);
+        gain.gain.setValueAtTime(0.0001, ac.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.11, ac.currentTime + 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+        osc.connect(gain); gain.connect(master); gain.connect(delay);
+        osc.start(); vibr.start();
+        osc.stop(ac.currentTime + dur + 0.02); vibr.stop(ac.currentTime + dur + 0.02);
+      }
+      const base = 392; const scale = [0,2,4,7,9];
+      function hz(step){ return base * Math.pow(2, step/12); }
+      function loop(){
+        if(!audioOn) return;
+        const step = scale[Math.floor(Math.random()*scale.length)];
+        const dur = 0.8 + Math.random()*0.6;
+        fluteNote(hz(step), dur);
+        const wait = 1400 + Math.random()*1000;
+        seqTimer = setTimeout(loop, wait);
+      }
+      loop();
+
+      audioOn = true; audioBtn.textContent = "Sound: On";
+    }
+    function stopAudio(){
+      if(!audioOn) return;
+      audioOn = false;
+      if(seqTimer) clearTimeout(seqTimer);
+      if(ac) ac.close();
+      audioBtn.textContent = "Sound: Off";
+    }
+    audioBtn.addEventListener('click', ()=>{ audioOn? stopAudio(): startAudio(); });
+
+    // Auto start sound after user gesture: clicking anywhere in header section
+    document.addEventListener('DOMContentLoaded', ()=>{
+      // On first click anywhere, if audio off, start
+      document.body.addEventListener('click', ()=>{ if(!audioOn) startAudio(); }, { once:true });
+    });
+  </script>
+</body>
+</html>
